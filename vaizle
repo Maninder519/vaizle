@@ -1,0 +1,106 @@
+def calculateStartingDayOfTheYear(year):
+    diff_years=year-1970
+    diff_leap_years=(year-1972)//4
+    total_odd_days=diff_years+diff_leap_years
+    return total_odd_days%7
+def isLeapYear(year):
+    if year%4==0:
+        if year%100==0:
+            if year%400==0:
+                return True
+            else:
+                return False
+        else:
+            return True
+    else:
+        return False
+def calculateStartingDayOfTheMonth(month,year,year_start_date):
+    monthly_odd_days=[0,3,0,3,2,3,2,3,3,2,3,2,3]
+    odd_days=sum(monthly_odd_days[:month])
+    if month>2 and isLeapYear(year):
+        odd_days+=1
+    odd_days%=7
+    return (year_start_date+odd_days)%7
+def calculateDay(date):
+    # days are taken from thursday as 1970-01-01, which is the lower limit specified in the question, is a thursday
+    days=['Thu','Fri','Sat','Sun','Mon','Tue','Wed']
+    date=date.split('-')
+    year=int(date[0])
+    month=int(date[1])
+    day=int(date[2])
+    year_start_date=calculateStartingDayOfTheYear(year)
+    month_start_date=calculateStartingDayOfTheMonth(month,year,year_start_date)
+    diff_days=day-1
+    day=diff_days%7
+    return days[(month_start_date+day)%7]
+def calculateValuesForConsecutivelyMissingDays(d,count):
+    prev_val=0
+    prev_day=-1
+    next_day=-1
+    next_val=0
+    days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    i=0
+    while i<7:
+        if not(d.get(days[i],False)):
+            if i==0:
+                prev_day=6
+            else:
+                prev_day=i-1
+            prev_val=d[days[prev_day]]
+            next_day=(i+count)%7
+            next_val=d[days[next_day]]
+            break
+        i+=1
+    j=count
+    for i in range(1,count+1):
+        d[days[prev_day+i]]=((j*prev_val)+(i*next_val))//(count+1)
+        j-=1
+    return d
+def calculateValuesForMissingDays(d):
+    days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+    consecutive_missing_days_count=0
+    for i in range(7):
+        if not(d.get(days[i],False)):
+            if d.get(days[i-1],False) and d.get(days[(i+1)%7],False):
+                d[days[i]]=(d[days[i-1]]+d[days[(i+1)%7]])//2
+            else:
+                consecutive_missing_days_count+=1
+    if consecutive_missing_days_count>1:
+        d=calculateValuesForConsecutivelyMissingDays(d,consecutive_missing_days_count)
+    return d
+def solution(D):
+    res={}
+    for date in D.keys():
+        day=calculateDay(date)
+        res[day]=res.get(day,0)+D[date]
+    if len(res.keys())!=7:
+        res=calculateValuesForMissingDays(res)
+    return res
+def main():
+    d1={
+    '2020-01-01':4,
+    '2020-01-02':4,
+    '2020-01-03':6,
+    '2020-01-04':8,
+    '2020-01-05':2,
+    '2020-01-06':-6,
+    '2020-01-07':2,
+    '2020-01-08':-2
+    }
+    d2={
+    '2020-01-01':6,
+    '2020-01-04':12,
+    '2020-01-05':14,
+    '2020-01-06':2,
+    '2020-01-07':4
+    }
+    d3={
+    '2020-01-01':6,
+    '2020-01-04':12,
+    '2020-01-05':14,
+    '2020-01-06':2,
+    '2020-01-07':4
+    }
+    #print(solution(d1))
+    print(solution(d3))
+main()
